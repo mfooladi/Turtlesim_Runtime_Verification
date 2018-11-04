@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="trust" pkg="turtle_rv" type="turtle_rv_trust" required="true"/>
+  <node name="parameters" pkg="turtle_rv" type="parameters" required="true"/>
+</launch>

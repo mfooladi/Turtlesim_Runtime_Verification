@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="obstacles" pkg="turtle_rv" type="turtle_rv_obstacles" required="true"/>
+</launch>

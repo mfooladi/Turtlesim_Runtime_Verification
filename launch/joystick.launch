@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<launch>
+  <include file="$(find i2r_common)/launch/joystick.launch"/>
+  <node name="interface_joystick" pkg="uav" type="uav_interface_joystick" required="true"/>
+</launch>

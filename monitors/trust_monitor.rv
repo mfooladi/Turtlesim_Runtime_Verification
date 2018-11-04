@@ -1,0 +1,50 @@
+#include <vector>
+#include <ros/ros.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Float64.h>
+#include <geometry_msgs/Twist.h>
+#include <turtle_rv/SetMode.h>
+
+collision() {
+	//parameters
+	double trust_min = 0.52;
+	double trust_low = 0.52;
+
+	//state variables
+	uint8_t collision = false;
+	double trust = 0.5;
+	uint8_t mode = 0;
+
+	//modes
+	turtle_rv::SetMode manual, autonomous;
+
+	init() {
+		manual.autonomous = false;
+		autonomous.autonomous = true;
+	}
+
+	event get_sensor(uint8_t sensor) /mobile_base/data/sensor std_msgs/Bool '{data: sensor}' {
+		collision = sensor;
+	}
+
+	event get_trust(double trust_value) /trust std_msgs/Float64 '{data: trust_value}' {
+		trust = trust_value;
+	}
+
+	event check_manual(uint8_t autonomous) /autonomous turtle_rv/SetMode '{autonomous: autonomous}' {
+		if(trust < trust_min) {
+			return;
+		}
+
+		mode = autonomous;
+	}
+
+	event check_collision(double vel_x) /mobile_base/commands/velocity geometry_msgs/Twist '{linear.x: vel_x}' {
+		if(trust < trust_low && mode == 0) {
+			vel_x = 0;
+
+			mode = 1;
+			PUBLISH(/autonomous, turtle_rv/SetMode, autonomous);
+		}
+	}
+}

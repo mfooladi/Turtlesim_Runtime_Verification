@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<launch>
+  <node name="control" pkg="turtle_rv" type="turtle_rv_control" required="true">
+    <rosparam param="grid/dimensions">[10, 10]</rosparam>
+    <rosparam param="grid/start">[0, 2]</rosparam>
+    <rosparam param="grid/obstacles">[]</rosparam>
+    <rosparam param="grid/goals">[6, 6, 2, 4, 5, 8]</rosparam>
+  </node>
+  <node name="mode_relay" pkg="i2r_common" type="i2r_topic_relay" required="true">
+    <param name="in" value="/mode"/>
+    <param name="out" value="/autonomous"/>
+  </node>
+</launch>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- whether to run gazebo gui, rviz gui, and turtle experiment node -->
+  <arg name="gazebo_gui" default="false"/>
+  <arg name="rviz_gui" default="true"/>
+  <arg name="run_turtle" default="true"/>
+
+  <!-- start gazebo (with optional gui) with turtle world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="gui" value="$(arg gazebo_gui)"/>
+    <arg name="world_name" value="$(find turtle_rv)/worlds/turtle.world"/>
+  </include>
+
+  <!-- start turtle drivers for gazebo -->
+  <include file="$(find turtle_rv)/launch/gazebo.launch"/>
+
+  <!-- start gridpath node that runs NuSMV -->
+  <include file="$(find nusmv)/launch/gridpath.launch"/>
+
+  <!-- optionally start rviz gui -->
+  <node if="$(arg rviz_gui)" name="rviz" pkg="rviz" type="rviz" args="-d $(find turtle_rv)/rviz/turtle.rviz" required="true">
+    <remap from="move_base_simple/goal" to="mobile_base/goal"/>
+  </node>
+ <node name="data_logger" pkg="turtle_rv" type="turtle_rv_data_logger" required="true">
+ </node>
+
+  <!-- start obstacle detection -->
+  <include file="$(find turtle_rv)/launch/obstacles.launch"/>
+
+  <!-- start joystick reader -->
+  <include file="$(find i2r_common)/launch/joystick.launch"/>
+
+  <!-- start control program -->
+  <include file="$(find turtle_rv)/launch/control.launch"/>
+
+  <!-- start trust program -->
+  <include file="$(find turtle_rv)/launch/trust.launch"/>
+</launch>

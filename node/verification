@@ -1,0 +1,12 @@
+#!/bin/sh
+rosmop $(rospack find turtle_rv)/monitors/
+
+killall -q rvmaster rvmaster_rosmaster roscore rosmaster rosout
+rvmaster &
+
+rosrun turtle_rv wait
+rosrv -enable collision
+
+roslaunch turtle_rv main.launch
+
+killall -q rvmaster rvmaster_rosmaster roscore rosmaster rosout

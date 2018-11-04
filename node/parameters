@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+import functools
+import signal
+
+import rospy
+
+import std_srvs.srv
+
+from gi.repository import GLib, Gtk, GObject
+
+GObject.threads_init()
+
+rospy.init_node('turtle_rv_parameters')
+
+trust_reload = rospy.ServiceProxy('trust/reload', std_srvs.srv.Empty)
+
+class QuestionBox(Gtk.Box):
+	def __init__(self, question, value):
+		Gtk.Box.__init__(self)
+
+		self.lbox = Gtk.Box(spacing=6)
+		self.lbox.set_halign(Gtk.Align.START)
+		self.pack_start(self.lbox, True, True, 0)
+
+		self.question = Gtk.Label(question)
+		self.lbox.pack_start(self.question, True, True, 0)
+
+		self.rbox = Gtk.Box(spacing=6)
+		self.rbox.set_halign(Gtk.Align.END)
+		self.pack_start(self.rbox, True, True, 0)
+
+		self.entry = Gtk.Entry()
+		self.entry.set_text(str(value));
+		self.rbox.pack_start(self.entry, True, True, 0)
+
+class ParameterWindow(Gtk.Window):
+	def __init__(self):
+		GLib.idle_add(self.init)
+
+	def init(self):
+		Gtk.Window.__init__(self, title='Parameter Input')
+
+		self.set_border_width(6)
+
+		self.box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+		self.add(self.box)
+
+		self.questions = []
+
+		self.questions.append(QuestionBox('Enter Safety Factor:', 1))
+		self.box.pack_start(self.questions[0], True, True, 0)
+
+		self.questions.append(QuestionBox('Enter Threshold Distance:', 1))
+		self.box.pack_start(self.questions[1], True, True, 0)
+
+		self.questions.append(QuestionBox('Enter Sensitivity:', 100))
+		self.box.pack_start(self.questions[2], True, True, 0)
+
+		self.sbox = Gtk.Box(spacing=6)
+		self.box.pack_start(self.sbox, True, True, 0)
+
+		self.questions.append(QuestionBox('Enter A:', 1))
+		self.box.pack_start(self.questions[3], True, True, 0)
+
+		self.questions.append(QuestionBox('Enter B1:', 1))
+		self.box.pack_start(self.questions[4], True, True, 0)
+
+		self.questions.append(QuestionBox('Enter B2:', 1))
+		self.box.pack_start(self.questions[5], True, True, 0)
+
+		self.questions.append(QuestionBox('Enter C1:', 1))
+		self.box.pack_start(self.questions[6], True, True, 0)
+
+		self.questions.append(QuestionBox('Enter C2:', 1))
+		self.box.pack_start(self.questions[7], True, True, 0)
+
+		self.ubox = Gtk.Box(spacing=6)
+		self.ubox.set_halign(Gtk.Align.END)
+		self.box.pack_start(self.ubox, True, True, 0)
+
+		self.submit = Gtk.Button(label='Update')
+		self.submit.connect('clicked', self.update)
+		self.ubox.pack_start(self.submit, True, True, 0)
+
+		self.connect('delete-event', self.deinit)
+
+		self.show_all()
+
+	def update(self, widget):
+		rospy.set_param('trust/safety_factor', float(self.questions[0].entry.get_text()))
+		rospy.set_param('trust/threshold_distance', float(self.questions[1].entry.get_text()))
+		rospy.set_param('trust/sensitivity', float(self.questions[2].entry.get_text()))
+
+		rospy.set_param('trust/A', float(self.questions[3].entry.get_text()))
+		rospy.set_param('trust/B1', float(self.questions[4].entry.get_text()))
+		rospy.set_param('trust/B2', float(self.questions[5].entry.get_text()))
+		rospy.set_param('trust/C1', float(self.questions[6].entry.get_text()))
+		rospy.set_param('trust/C2', float(self.questions[7].entry.get_text()))
+
+		trust_reload()
+
+	def deinit(self, widget, event):
+		rospy.signal_shutdown('shutting down')
+
+window = ParameterWindow()
+
+loop = GObject.MainLoop()
+
+rospy.on_shutdown(functools.partial(GLib.idle_add, loop.quit))
+GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGINT, functools.partial(rospy.signal_shutdown, 'shutting down'))
+GLib.unix_signal_add(GLib.PRIORITY_HIGH, signal.SIGTERM, functools.partial(rospy.signal_shutdown, 'shutting down'))
+
+try:
+	loop.run()
+except:
+	pass
